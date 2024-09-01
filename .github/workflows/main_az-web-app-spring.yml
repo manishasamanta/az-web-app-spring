@@ -30,7 +30,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: '**/libs/*.jar'
+          path: '**/libs/*demo-0.0.1-SNAPSHOT-plain.jar'
 
   deploy:
     runs-on: windows-latest
