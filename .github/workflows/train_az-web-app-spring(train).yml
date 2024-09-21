@@ -22,33 +22,42 @@ jobs:
           java-version: '17'
           distribution: 'microsoft'
 
-      - name: Build with Maven
-        run: mvn clean install
+      - name: Build with Gradle Wrapper
+        run: ./gradlew build
+
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: '${{ github.workspace }}/target/*.jar'
+          path: '**/libs/*demo-0.0.1-SNAPSHOT.jar'
 
   deploy:
     runs-on: windows-latest
     needs: build
     environment:
-      name: 'train'
+      name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    
+    permissions:
+      id-token: write #This is required for requesting the JWT
+
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: java-app
       
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_23E359D2DC6948F7B1807D6CF86010D4 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_6C913F6DC2C44562929251965C7AB9AF }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_8B6F6E7AE0274C86AB1ABA94AD032FF1 }}
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'az-web-app-spring'
-          slot-name: 'train'
+          slot-name: 'Production'
           package: '*.jar'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_1A1C56AE4EB24F4EB7E538AF175EA6DB }}
